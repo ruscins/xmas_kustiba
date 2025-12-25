@@ -20,7 +20,7 @@ const Button: React.FC<{
 );
 
 const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-  <div className={`bg-white rounded-3xl shadow-xl p-6 md:p-8 ${className}`}>
+  <div className={`glass-card rounded-3xl shadow-2xl p-6 md:p-8 ${className}`}>
     {children}
   </div>
 );
@@ -41,13 +41,9 @@ const App: React.FC = () => {
     setLoading(true);
     setShowExplanation(false);
     
-    // 1. Get all exercises for this difficulty
     const difficultyPool = EXERCISES.filter(ex => ex.difficulty.includes(selectedDifficulty));
-    
-    // 2. Filter out already used exercises
     let availableExercises = difficultyPool.filter(ex => !currentUsedIds.has(ex.id));
     
-    // 3. If all exercises used, reset the used list for this difficulty
     if (availableExercises.length === 0) {
       availableExercises = difficultyPool;
       setUsedExerciseIds(new Set());
@@ -55,8 +51,6 @@ const App: React.FC = () => {
     }
 
     const randomExercise = availableExercises[Math.floor(Math.random() * availableExercises.length)];
-    
-    // Get rep range for difficulty
     const config = DIFFICULTY_CONFIG[selectedDifficulty];
     const reps = Math.floor(Math.random() * (config.repRange[1] - config.repRange[0] + 1)) + config.repRange[0];
 
@@ -89,7 +83,6 @@ const App: React.FC = () => {
       totalCalories: prev.totalCalories + caloriesGained
     }));
 
-    // Generate next one while excluding already used ones
     generateNewExercise(difficulty, usedExerciseIds);
   };
 
@@ -105,42 +98,47 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 snow-bg text-slate-900 selection:bg-orange-200">
+    <div className="min-h-screen snow-bg text-slate-900 selection:bg-red-200">
       <div className="max-w-4xl mx-auto px-4 py-8 md:py-12">
         
         {/* Header */}
         <header className="text-center mb-12">
-          <div className="inline-block bg-orange-100 text-orange-600 px-4 py-1 rounded-full text-sm font-bold uppercase tracking-wider mb-4">
-            🔥 Pēc-svētku detokss
+          <div className="inline-block bg-red-600 text-white px-5 py-1.5 rounded-full text-sm font-bold uppercase tracking-widest mb-4 shadow-lg shadow-red-900/40">
+            🎁 Ziemassvētku Enerģijas Lādiņš
           </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold text-slate-800 mb-4 tracking-tight">
-            Ziemas <span className="text-blue-500">Izaicinājums</span>
+          <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-4 tracking-tighter">
+            Svētku <span className="text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]">Fitness</span> 🎅
           </h1>
-          <p className="text-slate-600 text-lg max-w-xl mx-auto">
-            Izkusties, sadedzini kalorijas un atgriezies formā ar jautru, mainīgu treniņu programmu mājās!
+          <p className="text-slate-300 text-lg max-w-xl mx-auto font-medium">
+            Sadedzini svētku našķus un sagatavo sevi jaunajam gadam ar jautru rūķu treniņu!
           </p>
         </header>
 
         {!difficulty ? (
           /* Difficulty Selection View */
-          <div className="grid md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="grid md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
             {(Object.keys(DIFFICULTY_CONFIG) as Difficulty[]).map((level) => (
               <button
                 key={level}
                 onClick={() => handleDifficultySelect(level)}
-                className="group relative bg-white p-8 rounded-3xl shadow-lg border-2 border-transparent hover:border-slate-200 transition-all text-left"
+                className="group relative bg-white/10 backdrop-blur-md p-8 rounded-3xl border-2 border-white/10 hover:border-red-500/50 hover:bg-white/15 transition-all text-left overflow-hidden"
               >
-                <div className={`w-12 h-12 rounded-2xl ${DIFFICULTY_CONFIG[level].color} flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform`}>
-                  {level === Difficulty.EASY ? '🌱' : level === Difficulty.MEDIUM ? '⚡' : '🔥'}
+                <div className="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <span className="text-9xl">❄️</span>
                 </div>
-                <h3 className="text-2xl font-bold mb-2">{level}</h3>
-                <p className="text-slate-500 text-sm">
-                  {level === Difficulty.EASY && "Piemērots iesācējiem vai saudzīgam treniņam."}
-                  {level === Difficulty.MEDIUM && "Standarta intensitāte aktīviem cilvēkiem."}
-                  {level === Difficulty.HARD && "Izaicinošs līmenis pieredzējušiem sportotājiem."}
+                <div className={`w-14 h-14 rounded-2xl ${
+                    level === Difficulty.EASY ? 'bg-emerald-600' : level === Difficulty.MEDIUM ? 'bg-amber-500' : 'bg-red-600'
+                } flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:rotate-6 transition-transform shadow-xl`}>
+                  {level === Difficulty.EASY ? '🕯️' : level === Difficulty.MEDIUM ? '🦌' : '🔥'}
+                </div>
+                <h3 className="text-2xl font-bold mb-2 text-white">{level}</h3>
+                <p className="text-slate-400 text-sm">
+                  {level === Difficulty.EASY && "Viegla iesildīšanās pirms svētku vakariņām."}
+                  {level === Difficulty.MEDIUM && "Enerģisks treniņš pēc kārtīgas mielošanās."}
+                  {level === Difficulty.HARD && "Īsts izaicinājums Ziemeļpola stilā!"}
                 </p>
-                <div className="mt-6 flex items-center text-sm font-semibold text-slate-400 group-hover:text-slate-900 transition-colors">
-                  Izvēlēties <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                <div className="mt-6 flex items-center text-sm font-bold text-red-400 group-hover:text-red-300 transition-colors uppercase tracking-wider">
+                  Sākt treniņu <span className="ml-2 group-hover:translate-x-2 transition-transform">🎄</span>
                 </div>
               </button>
             ))}
@@ -151,75 +149,87 @@ const App: React.FC = () => {
             
             {/* Stats Bar */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center">
-                <span className="text-xs text-slate-400 font-bold uppercase">Izpildīti</span>
+              <div className="bg-white/95 p-4 rounded-2xl shadow-xl flex flex-col items-center">
+                <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Pieveikti</span>
                 <span className="text-2xl font-black text-slate-800">{stats.completedExercises}</span>
               </div>
-              <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center">
-                <span className="text-xs text-slate-400 font-bold uppercase">Kalorijas</span>
-                <span className="text-2xl font-black text-orange-500">{stats.totalCalories.toFixed(1)}</span>
+              <div className="bg-white/95 p-4 rounded-2xl shadow-xl flex flex-col items-center">
+                <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Sadedzināts</span>
+                <span className="text-2xl font-black text-red-600">{stats.totalCalories.toFixed(1)} <span className="text-xs">kcal</span></span>
               </div>
-              <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center">
-                <span className="text-xs text-slate-400 font-bold uppercase">Līmenis</span>
-                <span className={`text-sm font-black px-2 py-0.5 rounded ${DIFFICULTY_CONFIG[difficulty].color} text-white mt-1`}>
+              <div className="bg-white/95 p-4 rounded-2xl shadow-xl flex flex-col items-center">
+                <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Grūtība</span>
+                <span className={`text-xs font-black px-3 py-1 rounded-full mt-1 text-white ${
+                    difficulty === Difficulty.EASY ? 'bg-emerald-600' : difficulty === Difficulty.MEDIUM ? 'bg-amber-500' : 'bg-red-600'
+                }`}>
                   {difficulty}
                 </span>
               </div>
               <button 
                 onClick={resetSession}
-                className="bg-slate-100 hover:bg-slate-200 p-4 rounded-2xl flex flex-col items-center transition-colors"
+                className="bg-white/10 hover:bg-red-600/30 text-white p-4 rounded-2xl flex flex-col items-center transition-all border border-white/10"
               >
-                <span className="text-xs text-slate-400 font-bold uppercase">Beigt</span>
-                <span className="text-2xl">🛑</span>
+                <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Atpūsties</span>
+                <span className="text-2xl">🏠</span>
               </button>
             </div>
 
             {/* Exercise Card */}
             {currentExercise && (
-              <Card className="relative overflow-hidden border-t-4 border-blue-500">
+              <Card className="relative overflow-hidden border-t-8 border-red-600">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 via-emerald-600 to-red-600 opacity-50"></div>
+                <div className="absolute -top-1 left-0 w-full text-center text-xs opacity-50 select-none">
+                    🔔 ✨ 🔔 ✨ 🔔 ✨ 🔔 ✨ 🔔 ✨ 🔔 ✨ 🔔 ✨ 🔔
+                </div>
+
                 {loading ? (
-                  <div className="h-64 flex flex-col items-center justify-center space-y-4">
-                    <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-slate-400 font-medium italic">Izlozējam nākamo izaicinājumu...</p>
+                  <div className="h-64 flex flex-col items-center justify-center space-y-4 text-slate-800">
+                    <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="font-bold italic">Rūķi gatavo nākamo vingrinājumu...</p>
                   </div>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-6 pt-4">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h2 className="text-3xl md:text-4xl font-black text-slate-800 mb-2">
+                        <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-3 tracking-tight">
                           {currentExercise.exercise.name}
                         </h2>
-                        <p className="text-slate-500 text-lg">
-                          Izpildi šo vingrinājumu <span className="text-blue-600 font-bold underline decoration-blue-200 decoration-4 underline-offset-4">{currentExercise.reps} reizes</span>.
-                        </p>
+                        <div className="flex items-center gap-3">
+                            <span className="text-red-600 text-5xl font-black drop-shadow-sm">
+                                {currentExercise.reps}
+                            </span>
+                            <span className="text-slate-400 font-bold text-xl uppercase tracking-tighter">atkārtojumi</span>
+                        </div>
                       </div>
-                      <div className="bg-blue-50 text-blue-600 p-4 rounded-3xl text-4xl hidden sm:block">
-                        🏋️‍♂️
+                      <div className="bg-red-50 text-red-600 w-20 h-20 rounded-3xl text-5xl hidden sm:flex items-center justify-center shadow-inner">
+                        {currentExercise.exercise.id.startsWith('sq') ? '🦵' : 
+                         currentExercise.exercise.id.startsWith('ub') ? '💪' : 
+                         currentExercise.exercise.id.startsWith('ab') ? '🧘' : '🏃'}
                       </div>
                     </div>
 
-                    <div className="bg-slate-50 p-4 rounded-2xl">
-                      <p className="text-slate-700 italic">"{currentExercise.exercise.description}"</p>
+                    <div className="bg-slate-100 p-5 rounded-2xl border-l-4 border-emerald-500">
+                      <p className="text-slate-700 italic font-medium">"{currentExercise.exercise.description}"</p>
                     </div>
 
                     {currentExercise.exercise.steps && (
                       <div className="mt-4">
                         <button 
                           onClick={() => setShowExplanation(!showExplanation)}
-                          className="text-blue-500 font-bold text-sm flex items-center gap-1 hover:text-blue-600 transition-colors"
+                          className="text-emerald-600 font-black text-sm flex items-center gap-1 hover:text-emerald-700 transition-colors uppercase tracking-wider"
                         >
-                          {showExplanation ? 'Paslēpt pamācību' : 'Kā to izpildīt?'}
+                          {showExplanation ? 'Paslēpt dāvanas saturu' : 'Kā pareizi pildīt?'}
                           <span className={showExplanation ? 'rotate-180' : ''}>▾</span>
                         </button>
                         
                         {showExplanation && (
-                          <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-2">
+                          <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-4">
                             {currentExercise.exercise.steps.map((step, idx) => (
-                              <div key={idx} className="flex gap-4 items-start">
-                                <span className="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                              <div key={idx} className="flex gap-4 items-start bg-emerald-50/50 p-3 rounded-xl">
+                                <span className="bg-emerald-600 text-white w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black shrink-0 shadow-md">
                                   {idx + 1}
                                 </span>
-                                <p className="text-slate-600 text-sm leading-relaxed">{step}</p>
+                                <p className="text-slate-700 text-sm leading-relaxed font-medium">{step}</p>
                               </div>
                             ))}
                           </div>
@@ -227,13 +237,16 @@ const App: React.FC = () => {
                       </div>
                     )}
 
-                    <div className="pt-6 border-t border-slate-100">
+                    <div className="pt-8">
                       <Button 
                         onClick={handleExerciseComplete}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 py-4 text-xl"
+                        className="w-full bg-red-600 hover:bg-red-700 text-white shadow-xl shadow-red-200 py-5 text-2xl uppercase tracking-tighter"
                       >
-                        Gatavs! Nākamais 🚀
+                        Pabeigts! Nākamais 🎁
                       </Button>
+                      <p className="text-center text-slate-400 text-xs mt-4 font-bold uppercase tracking-widest">
+                        Nepadodies, svētku gariņš ir ar Tevi! ✨
+                      </p>
                     </div>
                   </div>
                 )}
@@ -243,9 +256,12 @@ const App: React.FC = () => {
         )}
 
         {/* Footer */}
-        <footer className="mt-16 text-center text-slate-400 text-sm pb-8">
-          <p>© 2024 Ziemas Fitnesa Izaicinājums. Nav nepieciešams aprīkojums.</p>
-          <p className="mt-2">Radi savu sapņu formu mājās! ✨</p>
+        <footer className="mt-20 text-center text-slate-500 text-sm pb-12 border-t border-white/10 pt-8">
+          <div className="flex justify-center gap-4 mb-4 opacity-50">
+            <span>❄️</span><span>🎄</span><span>🦌</span><span>❄️</span>
+          </div>
+          <p className="font-bold">© 2024 Ziemassvētku Fitnesa Izaicinājums</p>
+          <p className="mt-1 opacity-60 italic">Nav nepieciešams aprīkojums. Tikai svētku prieks!</p>
         </footer>
       </div>
     </div>
