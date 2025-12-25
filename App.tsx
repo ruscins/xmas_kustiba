@@ -36,6 +36,88 @@ const App: React.FC = () => {
   });
   const [loading, setLoading] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [sessionTime, setSessionTime] = useState(0);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [motivationalMessage, setMotivationalMessage] = useState('');
+
+  // Motivational messages
+  const motivationalMessages = [
+    { count: 5, message: "🎄 Lieliski! Pirmie 5 pieveikti!" },
+    { count: 10, message: "🔥 Tu esi ugunīgs! 10 vingrinājumi!" },
+    { count: 15, message: "💪 Neticami! 15 vingrinājumi - tu esi čempions!" },
+    { count: 20, message: "⭐ WOW! 20 vingrinājumi! Rūķi ir lepni!" },
+    { count: 25, message: "🏆 Leģenda! 25 vingrinājumi izpildīti!" },
+    { count: 30, message: "🎅 Santa būtu lepns! 30 vingrinājumi!" },
+    { count: 50, message: "🌟 FENOMENĀLI! 50 vingrinājumi - tu esi superzvaigzne!" }
+  ];
+
+  // Play success sound
+  const playSuccessSound = () => {
+    if (!soundEnabled) return;
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (e) {
+      console.log('Audio not supported');
+    }
+  };
+
+  // Format session time
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Share results
+  const shareResults = async () => {
+    const shareText = `🎄 Ziemassvētku Fitness rezultāti:\n✅ ${stats.completedExercises} vingrinājumi\n🔥 ${stats.totalCalories.toFixed(1)} kcal\n⏱️ ${formatTime(sessionTime)}\n💪 Grūtība: ${difficulty}\n\nPamēģini arī Tu: ${window.location.href}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Ziemassvētku Fitness',
+          text: shareText
+        });
+      } catch (err) {
+        console.log('Share cancelled');
+      }
+    } else {
+      // Fallback to clipboard
+      try {
+        await navigator.clipboard.writeText(shareText);
+        alert('📋 Rezultāti nokopēti starpliktuvē!');
+      } catch (err) {
+        alert('Neizdevās nokopēt. Tavs rezultāts:\n' + shareText);
+      }
+    }
+  };
+
+  // Session timer
+  useEffect(() => {
+    if (!difficulty) {
+      setSessionTime(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setSessionTime(prev => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [difficulty]);
 
   const generateNewExercise = useCallback(async (selectedDifficulty: Difficulty, currentUsedIds: Set<string>) => {
     setLoading(true);
@@ -76,12 +158,23 @@ const App: React.FC = () => {
     if (!currentExercise || !difficulty) return;
 
     const caloriesGained = currentExercise.exercise.baseCalories * currentExercise.reps;
+    const newCompletedCount = stats.completedExercises + 1;
     
     setStats(prev => ({
       ...prev,
-      completedExercises: prev.completedExercises + 1,
+      completedExercises: newCompletedCount,
       totalCalories: prev.totalCalories + caloriesGained
     }));
+
+    // Play success sound
+    playSuccessSound();
+
+    // Check for motivational message
+    const milestone = motivationalMessages.find(m => m.count === newCompletedCount);
+    if (milestone) {
+      setMotivationalMessage(milestone.message);
+      setTimeout(() => setMotivationalMessage(''), 4000);
+    }
 
     generateNewExercise(difficulty, usedExerciseIds);
   };
@@ -148,7 +241,7 @@ const App: React.FC = () => {
           <div className="space-y-8 animate-in zoom-in-95 duration-500">
             
             {/* Stats Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
               <div className="bg-white/95 p-4 rounded-2xl shadow-xl flex flex-col items-center">
                 <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Pieveikti</span>
                 <span className="text-2xl font-black text-slate-800">{stats.completedExercises}</span>
@@ -156,6 +249,10 @@ const App: React.FC = () => {
               <div className="bg-white/95 p-4 rounded-2xl shadow-xl flex flex-col items-center">
                 <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Sadedzināts</span>
                 <span className="text-2xl font-black text-red-600">{stats.totalCalories.toFixed(1)} <span className="text-xs">kcal</span></span>
+              </div>
+              <div className="bg-white/95 p-4 rounded-2xl shadow-xl flex flex-col items-center">
+                <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Laiks</span>
+                <span className="text-2xl font-black text-emerald-600">{formatTime(sessionTime)}</span>
               </div>
               <div className="bg-white/95 p-4 rounded-2xl shadow-xl flex flex-col items-center">
                 <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Grūtība</span>
@@ -173,6 +270,15 @@ const App: React.FC = () => {
                 <span className="text-2xl">🏠</span>
               </button>
             </div>
+
+            {/* Motivational Message */}
+            {motivationalMessage && (
+              <div className="animate-in slide-in-from-top-4 fade-in duration-500">
+                <div className="bg-gradient-to-r from-amber-400 via-red-500 to-pink-500 text-white p-6 rounded-2xl shadow-2xl text-center border-4 border-white/30">
+                  <p className="text-2xl font-black">{motivationalMessage}</p>
+                </div>
+              </div>
+            )}
 
             {/* Exercise Card */}
             {currentExercise && (
@@ -244,6 +350,27 @@ const App: React.FC = () => {
                       >
                         Pabeigts! Nākamais 🎁
                       </Button>
+                      
+                      {/* Share and Sound Controls */}
+                      <div className="flex gap-3 mt-4">
+                        <button
+                          onClick={shareResults}
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold text-sm uppercase tracking-wide transition-all flex items-center justify-center gap-2"
+                        >
+                          <span>📤</span> Dalīties
+                        </button>
+                        <button
+                          onClick={() => setSoundEnabled(!soundEnabled)}
+                          className={`px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+                            soundEnabled 
+                              ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                              : 'bg-slate-300 hover:bg-slate-400 text-slate-600'
+                          }`}
+                        >
+                          {soundEnabled ? '🔊' : '🔇'}
+                        </button>
+                      </div>
+                      
                       <p className="text-center text-slate-400 text-xs mt-4 font-bold uppercase tracking-widest">
                         Nepadodies, svētku gariņš ir ar Tevi! ✨
                       </p>
